@@ -1,0 +1,9 @@
+package.json
+yarn.lock
+.git/
+dist/
+node_modules/
+documentation/
+reports/
+LICENSE
+.*

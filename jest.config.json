@@ -1,0 +1,36 @@
+{
+    "rootDir": "src",
+    "testRegex": ".spec.ts$",
+    "transform": {
+        "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "testEnvironment": "node",
+    "reporters": [
+        "default",
+        [
+            "jest-html-reporter",
+            {
+                "outputPath": "../reports/html/jest.junit.html",
+                "includeFailureMsg": true
+            }
+        ],
+        [
+            "jest-junit",
+            {
+                "outputDirectory": "./reports/junit/",
+                "outputName": "jest.junit.xml"
+            }
+        ]
+    ],
+    "coverageDirectory": "../reports/coverage",
+    "coverageReporters": ["html", "text", "text-summary", "cobertura"],
+    "coverageThreshold": {
+        "global": {
+            "statements": 100,
+            "branches": 100,
+            "functions": 100,
+            "lines": 100
+        }
+    },
+    "testRunner": "jest-circus/runner"
+}

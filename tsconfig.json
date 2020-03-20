@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2019",
+        "removeComments": true,
+        "sourceMap": true,
+        "outDir": "dist",
+        "declaration": true,
+        "strict": true,
+        "incremental": true,
+        "noUnusedLocals": true
+    },
+    "exclude": ["node_modules", "dist", "test"]
+}

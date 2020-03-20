@@ -1,0 +1,66 @@
+{
+    "name": "ntsu",
+    "description": "Node task scheduling utilities",
+    "version": "0.0.0-semantic-release",
+    "author": "Ivan Hell",
+    "engines": {
+        "node": ">=12.8.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hellivan/node-task-scheduling-utilities.git"
+    },
+    "keywords": ["util", "node", "pool", "thread-pool", "worker-thread-pool", "observable", "task", "worker", "worker_threads", "scheduling", "parallel", "thread", "typescript"],
+    "license": "MIT",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "rimraf ./dist && tsc -p tsconfig.build.json --incremental false",
+        "check-dependencies": "dependency-check package.json --missing --no-dev",
+        "check-formatting": "prettier --check \"./**/*\"",
+        "format": "prettier --write \"./**/*\"",
+        "lint": "eslint ./src --ext .ts",
+        "lint:ci": "eslint ./src --ext .ts --format junit -o reports/junit/eslint.xml",
+        "semantic-release": "semantic-release",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:cov": "jest --coverage",
+        "test:debug": "node --inspect-brk -r ts-node/register node_modules/.bin/jest --runInBand",
+        "test:e2e": "jest --config ./test/jest-e2e.config.json"
+    },
+    "dependencies": {
+        "rxjs": "^6.5.4"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "pretty-quick --staged"
+        }
+    },
+    "devDependencies": {
+        "@semantic-release/changelog": "^5.0.0",
+        "@semantic-release/commit-analyzer": "^8.0.1",
+        "@semantic-release/github": "^7.0.5",
+        "@semantic-release/npm": "^7.0.5",
+        "@semantic-release/release-notes-generator": "^9.0.1",
+        "@types/jest": "^25.1.4",
+        "@types/node": "^12.12.30",
+        "@typescript-eslint/eslint-plugin": "^2.24.0",
+        "@typescript-eslint/parser": "^2.24.0",
+        "condition-circle": "^2.0.2",
+        "dependency-check": "^4.1.0",
+        "eslint": "^6.8.0",
+        "eslint-config-prettier": "^6.10.1",
+        "eslint-plugin-prettier": "^3.1.2",
+        "husky": "^4.2.3",
+        "jest": "^25.1.0",
+        "jest-circus": "^25.1.0",
+        "jest-html-reporter": "^2.8.1",
+        "jest-junit": "^10.0.0",
+        "prettier": "^2.0.1",
+        "pretty-quick": "^2.0.1",
+        "rimraf": "^3.0.2",
+        "semantic-release": "^17.0.4",
+        "ts-jest": "^25.2.1",
+        "typescript": "~3.8.3"
+    }
+}

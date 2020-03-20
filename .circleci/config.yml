@@ -1,0 +1,112 @@
+version: 2.1
+orbs:
+  codecov: codecov/codecov@1.0.5
+
+aliases:
+  - &job-defaults
+      docker:
+        - image: circleci/node:12.13.0
+      working_directory: ~/repo
+  - &attach_workspace
+      attach_workspace:
+        at: ~/
+
+jobs:
+  setup:
+    <<: *job-defaults
+    steps:
+      - checkout
+      - run:
+          command: yarn install --frozen-lockfile --non-interactive
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ./repo
+
+  build:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn build
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - ./repo/dist
+
+  lint:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn lint:ci
+      - store_test_results:
+          path: reports/junit
+
+  test:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn test:cov
+      - run:
+          command: yarn test:e2e
+      - store_test_results:
+          path: reports/junit
+      - codecov/upload:
+          file: reports/coverage/cobertura-coverage.xml
+          flags: unittests
+
+
+  check-dependencies:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn check-dependencies
+
+  check-formatting:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn check-formatting
+
+  release:
+    <<: *job-defaults
+    steps:
+      - *attach_workspace
+      - run:
+          command: yarn semantic-release
+
+workflows:
+  version: 2
+  install-test-build-and-publish:
+    jobs:
+      - setup
+      - build:
+          requires:
+            - setup
+      - lint:
+          requires:
+            - setup
+      - test:
+          requires:
+            - setup
+      - check-dependencies:
+          requires:
+            - build
+      - check-formatting:
+          requires:
+            - setup
+      - release:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - build
+            - lint
+            - test
+            - check-dependencies
+            - check-formatting

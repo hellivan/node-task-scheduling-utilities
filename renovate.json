@@ -1,0 +1,17 @@
+{
+    "extends": ["config:base", ":onlyNpm"],
+    "rangeStrategy": "bump",
+    "postUpdateOptions": ["yarnDedupeFewer"],
+    "baseBranches": ["develop"],
+    "automerge": true,
+    "major": {
+        "automerge": false
+    },
+    "packageRules": [
+        {
+            "depTypeList": ["devDependencies"],
+            "updateTypes": ["patch", "minor"],
+            "groupName": "devDependencies (non-major)"
+        }
+    ]
+}
