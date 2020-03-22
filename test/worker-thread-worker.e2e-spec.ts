@@ -24,7 +24,8 @@ describe('WorkerThreadWorker', () => {
         >(
             new WorkerThreadWorkerFactory<string, string>(pathJoin(__dirname, 'worker-scripts', 'echo-worker.js')),
             2,
-            10
+            10,
+            1000
         );
 
         const result = await pool.executeTask({ timeout: 3000, data: 'World' });
@@ -40,7 +41,8 @@ describe('WorkerThreadWorker', () => {
         >(
             new WorkerThreadWorkerFactory<string, string>(pathJoin(__dirname, 'worker-scripts', 'loop-worker.js')),
             2,
-            10
+            10,
+            1000
         );
 
         const taskResultPromise = pool.executeTask({ timeout: 100, data: 'World' });
@@ -58,7 +60,8 @@ describe('WorkerThreadWorker', () => {
                 pathJoin(__dirname, 'worker-scripts', 'executor-worker.js')
             ),
             2,
-            10
+            10,
+            1000
         );
 
         const data: ExecutorTaskData = {
@@ -91,7 +94,8 @@ describe('WorkerThreadWorker', () => {
                 pathJoin(__dirname, 'worker-scripts', 'executor-worker.js')
             ),
             2,
-            10
+            10,
+            1000
         );
 
         const data: ExecutorTaskData = {

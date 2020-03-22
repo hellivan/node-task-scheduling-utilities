@@ -4,6 +4,7 @@ import { distinctUntilChanged, filter, first } from 'rxjs/operators';
 import { ObservableQueue } from '../data-structures';
 import { WorkerFactory } from '../worker-factory';
 import { AbstractWorkerPool, AbstractWorkerPoolWorker } from './abstract-worker-pool';
+import { IdleWorkerDescription } from './idle-worker-description';
 
 export interface DynamicWorkerPoolWorker<TTask, TResult> extends AbstractWorkerPoolWorker<TTask, TResult> {
     dispose(): Promise<void>;
@@ -27,13 +28,14 @@ export class DynamicWorkerPool<
     private readonly availableWorkersSubject: BehaviorSubject<number>;
     private readonly errorSubject = new Subject<Error>();
     private readonly busyWorkersQueue = new ObservableQueue<TWorker>();
-    private readonly idleWorkersQueue = new ObservableQueue<TWorker>();
+    private readonly idleWorkersQueue = new ObservableQueue<IdleWorkerDescription<TWorker>>();
     private stopped = false;
 
     constructor(
         private readonly workerFactory: WorkerFactory<TWorker>,
         private readonly minSize: number,
-        private readonly maxSize: number
+        private readonly maxSize: number,
+        private readonly workersIdleTimeout: number
     ) {
         super();
 
@@ -66,26 +68,30 @@ export class DynamicWorkerPool<
 
         await this.busyWorkers$
             .pipe(
-                filter((x) => x === 0),
+                filter((count) => count === 0),
                 first()
             )
             .toPromise();
 
-        const existingWorkers = this.idleWorkersQueue.clear();
+        const existingWorkerDescriptions = this.idleWorkersQueue.clear();
+        existingWorkerDescriptions.forEach((d) => d.cancelIdleTimeout());
+
+        const existingWorkers = existingWorkerDescriptions.map(({ worker }) => worker);
         this.updatePoolSize();
         this.updateAvailableWorkers();
-        await Promise.all(existingWorkers.map((w) => this.safeDispose(w)));
+        await Promise.all(existingWorkers.map((worker) => this.safeDispose(worker)));
     }
 
     protected aquireWorker(): TWorker {
         if (this.stopped) {
             throw new Error('Cannot aquire worker from stopped worker pool!');
         } else if (this.idleWorkersQueue.size > 0) {
-            const worker = this.idleWorkersQueue.dequeue();
-            this.busyWorkersQueue.enqueue(worker);
+            const workerDescription = this.idleWorkersQueue.dequeue();
+            workerDescription.cancelIdleTimeout();
+            this.busyWorkersQueue.enqueue(workerDescription.worker);
             // NOTE: poolsize did not change since we reused an existing worker -> no need to update poolsize
             this.updateAvailableWorkers();
-            return worker;
+            return workerDescription.worker;
         } else if (this.size < this.maxSize) {
             const worker = this.workerFactory.createWorker();
             this.busyWorkersQueue.enqueue(worker);
@@ -98,16 +104,34 @@ export class DynamicWorkerPool<
     }
 
     protected releaseWorker(worker: TWorker): void {
-        const currentWorkersCount = this.size;
-        this.busyWorkersQueue.drop(worker);
-        if (currentWorkersCount > this.minSize) {
-            // NOTE: safeDispose will never reject -> leave promise uncatched is safe
-            this.safeDispose(worker);
-            this.updatePoolSize();
+        if (this.workersIdleTimeout < 1) {
+            // Workers do not have an idle timeout -> remove or enqueue them immediately
+            const currentWorkersCount = this.size;
+            this.busyWorkersQueue.drop(worker);
+
+            if (currentWorkersCount > this.minSize) {
+                // NOTE: safeDispose will never reject -> leave promise uncatched is safe
+                this.safeDispose(worker);
+                this.updatePoolSize();
+            } else {
+                this.idleWorkersQueue.enqueue(new IdleWorkerDescription<TWorker>(worker));
+                // NOTE: poolsize did not change since we standbyed an existing worker -> no need to update poolsize
+            }
         } else {
-            this.idleWorkersQueue.enqueue(worker);
-            // NOTE: poolsize did not change since we standbyed an existing worker -> no need to update poolsize
+            // Workers do have an idle timeout -> enqueue them as idle worker and remove them if possible after timeout
+            this.busyWorkersQueue.drop(worker);
+            const idleWorkerDescription = new IdleWorkerDescription<TWorker>(worker, this.workersIdleTimeout);
+            idleWorkerDescription.addTeardownLogic(() => {
+                if (this.size > this.minSize) {
+                    this.idleWorkersQueue.drop(idleWorkerDescription);
+                    this.safeDispose(worker);
+                    this.updatePoolSize();
+                    this.updateAvailableWorkers();
+                }
+            });
+            this.idleWorkersQueue.enqueue(idleWorkerDescription);
         }
+
         this.updateAvailableWorkers();
     }
 

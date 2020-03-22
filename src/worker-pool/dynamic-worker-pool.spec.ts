@@ -22,12 +22,12 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('size of new pool should be 0', () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 5, 0);
         expect(testPool.size).toEqual(0);
     });
 
     test('execute task should aquire new workers and execute tasks on them', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 2);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 2, 0);
 
         const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
         const createWorkerSpy = jest.spyOn(workerFactory, 'createWorker');
@@ -47,7 +47,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('worker pool should hould minSize workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 3, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 3, 5, 0);
 
         const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
         const createWorkerSpy = jest.spyOn(workerFactory, 'createWorker');
@@ -72,7 +72,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('executeTask should reject if worker pool max size is reached', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 1);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 1, 0);
 
         const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
         const createWorkerSpy = jest.spyOn(workerFactory, 'createWorker');
@@ -91,7 +91,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('worker pool should re-use existing workers in pool', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 1, 1);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 1, 1, 0);
 
         const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
         const createWorkerSpy = jest.spyOn(workerFactory, 'createWorker');
@@ -110,7 +110,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('worker pool should emit an error on error$ if worker disposal fails', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 1);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 0, 1, 0);
 
         jest.spyOn(testWorkerInstance, 'dispose').mockImplementationOnce(async () => {
             throw new Error('DisposeError');
@@ -126,13 +126,13 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('executeTask on a stopped DynamicWorkerPool should reject', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         testPool.stop();
         await expect(testPool.executeTask('1')).rejects.toThrowError('Cannot aquire worker from stopped worker pool!');
     });
 
     test('stop should terminate all current workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
 
         await Promise.all([
@@ -149,7 +149,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('busyWorkers$ should emit number of workers in use', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
         const busyWorkersHistoryPromise = testPool.busyWorkers$.pipe(bufferCount(13), first()).toPromise();
 
@@ -167,7 +167,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('idleWorkers$ should emit number of idle workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
         const idleWorkersHistoryPromise = testPool.idleWorkers$.pipe(bufferCount(5), first()).toPromise();
 
@@ -185,7 +185,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('availableWorkers$ should emit number of available workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
         const availableWorkersHistoryPromise = testPool.availableWorkers$.pipe(bufferCount(13), first()).toPromise();
 
@@ -203,7 +203,7 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('availableWorkers$ should emit 0 for a stopped pool', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
         const availableWorkersHistoryPromise = testPool.availableWorkers$.pipe(bufferCount(4), first()).toPromise();
 
@@ -215,13 +215,13 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('availableWorkers should return 0 for a stopped pool', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         await testPool.stop();
         expect(testPool.availableWorkers).toEqual(0);
     });
 
     test('availableWorkers should return number of possible free workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         expect(testPool.availableWorkers).toEqual(5);
         const taskResultPromise = testPool.executeTask('1');
         expect(testPool.availableWorkers).toEqual(4);
@@ -230,13 +230,13 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('idleWorkers should return 0 for a stopped pool', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         await testPool.stop();
         expect(testPool.idleWorkers).toEqual(0);
     });
 
     test('idleWorkers should return the number of created workers in idle state', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         expect(testPool.idleWorkers).toEqual(0);
         const taskResultPromise = testPool.executeTask('1');
         expect(testPool.idleWorkers).toEqual(0);
@@ -245,17 +245,44 @@ describe('DynamicWorkerPool', () => {
     });
 
     test('busyWorkers should return 0 for a stopped pool', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         await testPool.stop();
         expect(testPool.busyWorkers).toEqual(0);
     });
 
     test('busyWorkers should return the number of working workers', async () => {
-        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5);
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
         expect(testPool.busyWorkers).toEqual(0);
         const taskResultPromise = testPool.executeTask('1');
         expect(testPool.busyWorkers).toEqual(1);
         await taskResultPromise;
         expect(testPool.busyWorkers).toEqual(0);
+    });
+
+    test('DynamicWorkerPool with idleTimeout should keep idle workers for specified time', async () => {
+        const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 100);
+        const workerDisposeSpy = jest.spyOn(testWorkerInstance, 'dispose');
+
+        await Promise.all([
+            testPool.executeTask('1'),
+            testPool.executeTask('2'),
+            testPool.executeTask('3'),
+            testPool.executeTask('4'),
+            testPool.executeTask('5')
+        ]);
+
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        expect(workerDisposeSpy).toHaveBeenCalledTimes(0);
+        expect(testPool.size).toEqual(5);
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        expect(testPool.size).toEqual(2);
+        expect(workerDisposeSpy).toHaveBeenCalledTimes(3);
+
+        await testPool.stop();
+        expect(testPool.size).toEqual(0);
+        expect(workerDisposeSpy).toHaveBeenCalledTimes(5);
     });
 });
