@@ -2,11 +2,11 @@
 
 [![Build Status](https://img.shields.io/circleci/build/github/hellivan/node-task-scheduling-utilities/master?logo=circleci&style=flat-square)](https://circleci.com/gh/hellivan/node-task-scheduling-utilities)
 [![Code Coverage](https://img.shields.io/codecov/c/github/hellivan/node-task-scheduling-utilities/master?logo=codecov&style=flat-square)](https://codecov.io/gh/hellivan/node-task-scheduling-utilities)
-[![MIT License](https://img.shields.io/npm/l/node-task-scheduling-utilities?style=flat-square)](LICENSE)
+[![MIT License](https://img.shields.io/npm/l/ntsu?style=flat-square)](LICENSE)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=flat-square)](https://github.com/semantic-release/semantic-release)
 [![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg?style=flat-square)](https://renovatebot.com/)
-[![NPM Package](https://img.shields.io/npm/v/node-task-scheduling-utilities?logo=npm&style=flat-square)](https://www.npmjs.com/package/node-task-scheduling-utilities)
-[![NPM Package Downloads](https://img.shields.io/npm/dm/node-task-scheduling-utilities?logo=npm&style=flat-square)](https://www.npmjs.com/package/node-task-scheduling-utilities)
+[![NPM Package](https://img.shields.io/npm/v/ntsu?logo=npm&style=flat-square)](https://www.npmjs.com/package/ntsu)
+[![NPM Package Downloads](https://img.shields.io/npm/dm/ntsu?logo=npm&style=flat-square)](https://www.npmjs.com/package/ntsu)
 
 Utility library that provides some basic mechanisms for task scheduling/execution in Node.js
 
@@ -82,16 +82,12 @@ termination or failure between task-execution will also be catched by this imple
 errors or terminates a new `worker_thread` will be instantiated upon next task execution.
 
 ```typescript
-import { DynamicWorkerPool, WorkerThreadWorker } from 'ntsu';
+import { WorkerThreadWorker } from 'ntsu';
 
-// create new dynamic worker pool that uses workerFactory to instantiate new workers
-// and has a max size of 10. The pool will keep at least 3 idle workers if
-const pool = new DynamicWorkerPool(
-    {
-        createWorker: () => new WorkerThreadWorker('workerThreadScript.js')
-    },
-    3,
-    10
+// create a workerfactory that instantiates new WorkerThreadWorker workers, that
+// use workerThreadScript.js as worker_threads script
+const workerFactory = {
+    createWorker: () => new WorkerThreadWorker('workerThreadScript.js')
 );
 ```
 
