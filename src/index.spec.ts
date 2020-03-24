@@ -2,6 +2,7 @@ import {
     DynamicWorkerPool,
     DynamicWorkerPoolWorker,
     WorkerFactory,
+    WorkerPool,
     WorkerThreadTask,
     WorkerThreadWorker,
     QdScheduler
@@ -34,5 +35,10 @@ describe('exports', () => {
             data: 'foo'
         };
         expect(workerThreadTask).toBeDefined();
+
+        const workerPool: WorkerPool<string, string> = {
+            executeTask: (task: string) => Promise.resolve(task)
+        };
+        expect(workerPool).toBeDefined();
     });
 });
