@@ -1,4 +1,4 @@
-import { first, bufferCount } from 'rxjs/operators';
+import { bufferCount, firstValueFrom } from 'rxjs';
 
 import { DynamicWorkerPool } from './dynamic-worker-pool';
 
@@ -116,7 +116,7 @@ describe('DynamicWorkerPool', () => {
             throw new Error('DisposeError');
         });
 
-        const errorPromise = testPool.error$.pipe(first()).toPromise();
+        const errorPromise = firstValueFrom(testPool.error$);
 
         await testPool.executeTask('1');
 
@@ -151,7 +151,7 @@ describe('DynamicWorkerPool', () => {
     test('busyWorkers$ should emit number of workers in use', async () => {
         const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
-        const busyWorkersHistoryPromise = testPool.busyWorkers$.pipe(bufferCount(13), first()).toPromise();
+        const busyWorkersHistoryPromise = firstValueFrom(testPool.busyWorkers$.pipe(bufferCount(13)));
 
         await Promise.all([
             testPool.executeTask('1'),
@@ -169,7 +169,7 @@ describe('DynamicWorkerPool', () => {
     test('idleWorkers$ should emit number of idle workers', async () => {
         const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
-        const idleWorkersHistoryPromise = testPool.idleWorkers$.pipe(bufferCount(5), first()).toPromise();
+        const idleWorkersHistoryPromise = firstValueFrom(testPool.idleWorkers$.pipe(bufferCount(5)));
 
         await Promise.all([
             testPool.executeTask('1'),
@@ -187,7 +187,7 @@ describe('DynamicWorkerPool', () => {
     test('availableWorkers$ should emit number of available workers', async () => {
         const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
-        const availableWorkersHistoryPromise = testPool.availableWorkers$.pipe(bufferCount(13), first()).toPromise();
+        const availableWorkersHistoryPromise = firstValueFrom(testPool.availableWorkers$.pipe(bufferCount(13)));
 
         await Promise.all([
             testPool.executeTask('1'),
@@ -205,7 +205,7 @@ describe('DynamicWorkerPool', () => {
     test('availableWorkers$ should emit 0 for a stopped pool', async () => {
         const testPool = new DynamicWorkerPool<string, string, TestWorker>(workerFactory, 2, 5, 0);
 
-        const availableWorkersHistoryPromise = testPool.availableWorkers$.pipe(bufferCount(4), first()).toPromise();
+        const availableWorkersHistoryPromise = firstValueFrom(testPool.availableWorkers$.pipe(bufferCount(4)));
 
         await testPool.executeTask('1');
 

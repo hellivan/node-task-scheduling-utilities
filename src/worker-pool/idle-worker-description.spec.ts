@@ -1,7 +1,7 @@
 import { IdleWorkerDescription } from './idle-worker-description';
 
 describe('IdleWorkerDescription', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('legacy');
 
     beforeEach(() => {
         jest.clearAllMocks();

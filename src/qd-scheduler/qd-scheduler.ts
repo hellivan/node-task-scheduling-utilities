@@ -1,5 +1,15 @@
-import { merge as observableMerge, Observable, of as observableOf, Subject, Subscription, BehaviorSubject } from 'rxjs';
-import { mapTo, distinctUntilChanged, filter, first } from 'rxjs/operators';
+import {
+    BehaviorSubject,
+    distinctUntilChanged,
+    filter,
+    firstValueFrom,
+    mapTo,
+    merge as observableMerge,
+    Observable,
+    of as observableOf,
+    Subject,
+    Subscription
+} from 'rxjs';
 
 import { LimitedObservableQueue } from '../data-structures';
 
@@ -73,12 +83,7 @@ export class QdScheduler<TTask extends Task> {
     }
 
     public async workeredOff(): Promise<void> {
-        await this.size$
-            .pipe(
-                filter((size) => size === 0),
-                first()
-            )
-            .toPromise();
+        await firstValueFrom(this.size$.pipe(filter((size) => size === 0)));
     }
 
     public start(): void {

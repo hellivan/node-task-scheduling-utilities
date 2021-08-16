@@ -1,7 +1,7 @@
 import { TimerEventRegistration } from './timer-event-registration';
 
 describe('TimerRegistration', () => {
-    jest.useFakeTimers();
+    jest.useFakeTimers('legacy');
 
     beforeEach(() => {
         jest.clearAllMocks();
