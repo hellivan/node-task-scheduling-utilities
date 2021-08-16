@@ -5,7 +5,8 @@ export interface AbstractWorkerPoolWorker<TTask, TResult> {
 }
 
 export abstract class AbstractWorkerPool<TTask, TResult, TWorker extends AbstractWorkerPoolWorker<TTask, TResult>>
-    implements WorkerPool<TTask, TResult> {
+    implements WorkerPool<TTask, TResult>
+{
     public async executeTask(task: TTask): Promise<TResult> {
         const worker = this.aquireWorker();
         try {
