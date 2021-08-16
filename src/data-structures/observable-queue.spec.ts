@@ -1,5 +1,6 @@
+import { bufferCount, firstValueFrom } from 'rxjs';
+
 import { ObservableQueue } from './observable-queue';
-import { bufferCount, first } from 'rxjs/operators';
 
 describe('ObservableList', () => {
     test('Empty queue should have size 0', () => {
@@ -45,7 +46,7 @@ describe('ObservableList', () => {
 
     test('enqueue should add elements to the queue and change size accordingly', async () => {
         const queue = new ObservableQueue<string>();
-        const sizeChangesPromise = queue.size$.pipe(bufferCount(4), first()).toPromise();
+        const sizeChangesPromise = firstValueFrom(queue.size$.pipe(bufferCount(4)));
         expect(queue.size).toEqual(0);
         queue.enqueue('1');
         expect(queue.size).toEqual(1);
@@ -63,7 +64,7 @@ describe('ObservableList', () => {
         queue.enqueue('2');
         queue.enqueue('3');
 
-        const sizeChangesPromise = queue.size$.pipe(bufferCount(4), first()).toPromise();
+        const sizeChangesPromise = firstValueFrom(queue.size$.pipe(bufferCount(4)));
         expect(queue.size).toEqual(3);
         expect(queue.dequeue()).toEqual('1');
         expect(queue.size).toEqual(2);
@@ -86,7 +87,7 @@ describe('ObservableList', () => {
         queue.enqueue('2');
         queue.enqueue('3');
 
-        const sizeChangesPromise = queue.size$.pipe(bufferCount(2), first()).toPromise();
+        const sizeChangesPromise = firstValueFrom(queue.size$.pipe(bufferCount(2)));
         queue.clear();
 
         await expect(sizeChangesPromise).resolves.toEqual([3, 0]);

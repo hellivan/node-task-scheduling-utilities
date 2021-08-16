@@ -1,5 +1,6 @@
+import { bufferCount, firstValueFrom } from 'rxjs';
+
 import { QdScheduler } from './qd-scheduler';
-import { first, bufferCount } from 'rxjs/operators';
 
 describe('QdScheduler', () => {
     test('calling start on a started scheduler should throw an error', () => {
@@ -43,8 +44,8 @@ describe('QdScheduler', () => {
         const testError = new Error('TaskError');
         const testTask = { exec: (): Promise<void> => Promise.reject(testError) };
 
-        const completedPromise = scheduler.taskCompleted$.pipe(first()).toPromise();
-        const errorPromise = scheduler.taskError$.pipe(first()).toPromise();
+        const completedPromise = firstValueFrom(scheduler.taskCompleted$);
+        const errorPromise = firstValueFrom(scheduler.taskError$);
 
         scheduler.queueTask(testTask);
 
@@ -58,7 +59,7 @@ describe('QdScheduler', () => {
 
     test('taskQueued$ should emit queued tasks', async () => {
         const scheduler = new QdScheduler(1, 2);
-        const queuedPromise = scheduler.taskQueued$.pipe(bufferCount(2), first()).toPromise();
+        const queuedPromise = firstValueFrom(scheduler.taskQueued$.pipe(bufferCount(2)));
 
         const testTask1 = { exec: (): Promise<void> => Promise.resolve() };
         const testTask2 = { exec: (): Promise<void> => Promise.reject() };
@@ -71,7 +72,7 @@ describe('QdScheduler', () => {
 
     test('taskStarting$ should emit started tasks', async () => {
         const scheduler = new QdScheduler(1, 2);
-        const startingPromise = scheduler.taskStarting$.pipe(bufferCount(2), first()).toPromise();
+        const startingPromise = firstValueFrom(scheduler.taskStarting$.pipe(bufferCount(2)));
 
         const testTask1 = { exec: (): Promise<void> => Promise.resolve() };
         const testTask2 = { exec: (): Promise<void> => Promise.reject() };
@@ -105,7 +106,7 @@ describe('QdScheduler', () => {
     test('size$ should emit the current task count in the queue', async () => {
         const scheduler = new QdScheduler(1, 2);
 
-        const sizePromise = scheduler.size$.pipe(bufferCount(5), first()).toPromise();
+        const sizePromise = firstValueFrom(scheduler.size$.pipe(bufferCount(5)));
 
         const testTask = { exec: (): Promise<void> => Promise.resolve() };
 
@@ -140,7 +141,7 @@ describe('QdScheduler', () => {
     test('queuedTasksCount$ should emit the number of queued tasks', async () => {
         const scheduler = new QdScheduler(2, 2);
 
-        const queuedPromise = scheduler.queuedTasksCount$.pipe(bufferCount(5), first()).toPromise();
+        const queuedPromise = firstValueFrom(scheduler.queuedTasksCount$.pipe(bufferCount(5)));
 
         const testTask = { exec: (): Promise<void> => Promise.resolve() };
 
@@ -156,7 +157,7 @@ describe('QdScheduler', () => {
     test('runningTasksCount$ should emit the number of currently running tasks', async () => {
         const scheduler = new QdScheduler(2, 2);
 
-        const runningPromise = scheduler.runningTasksCount$.pipe(bufferCount(5), first()).toPromise();
+        const runningPromise = firstValueFrom(scheduler.runningTasksCount$.pipe(bufferCount(5)));
 
         const testTask = { exec: (): Promise<void> => Promise.resolve() };
 
@@ -219,7 +220,7 @@ describe('QdScheduler', () => {
         const scheduler = new QdScheduler(1, 2);
         const testTask = { exec: (): Promise<void> => Promise.resolve() };
 
-        const runningPromise1 = scheduler.runningTasksCount$.pipe(bufferCount(5), first()).toPromise();
+        const runningPromise1 = firstValueFrom(scheduler.runningTasksCount$.pipe(bufferCount(5)));
 
         scheduler.queueTask(testTask);
         scheduler.queueTask(testTask);
@@ -229,7 +230,7 @@ describe('QdScheduler', () => {
         scheduler.stop();
         expect(await runningPromise1).toEqual([0, 1, 0, 1, 0]);
 
-        const runningPromise2 = scheduler.runningTasksCount$.pipe(bufferCount(5), first()).toPromise();
+        const runningPromise2 = firstValueFrom(scheduler.runningTasksCount$.pipe(bufferCount(5)));
 
         scheduler.setMaxParallelTasks(2);
 

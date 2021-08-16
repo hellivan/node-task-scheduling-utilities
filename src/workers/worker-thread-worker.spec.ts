@@ -2,9 +2,11 @@ const WorkerConstructorMockFn = jest.fn();
 jest.mock('worker_threads', () => ({
     Worker: WorkerConstructorMockFn
 }));
-import { WorkerThreadTask, WorkerThreadWorker } from './worker-thread-worker';
+
 import { EventEmitter } from 'events';
-import { first, take, bufferCount } from 'rxjs/operators';
+import { bufferCount, firstValueFrom, take } from 'rxjs';
+
+import { WorkerThreadTask, WorkerThreadWorker } from './worker-thread-worker';
 
 class TestWorkerMock extends EventEmitter {
     public postMessage(): void {
@@ -146,7 +148,7 @@ describe('WorkerThreadWorker', () => {
 
         const worker = new WorkerThreadWorker<string, string, WorkerThreadTask<string>>('worker_script_path');
 
-        const errorEmitterPromise = worker.error$.pipe(take(2), bufferCount(2)).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$.pipe(take(2), bufferCount(2)));
 
         const resultPromise = worker.executeTask({
             timeout: 0,
@@ -260,7 +262,7 @@ describe('WorkerThreadWorker', () => {
 
         const worker = new WorkerThreadWorker<string, string, WorkerThreadTask<string>>('worker_script_path');
 
-        const errorEmitterPromise = worker.error$.pipe(first()).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$);
 
         const taskPromise = worker.executeTask({
             timeout: 3000,
@@ -277,7 +279,7 @@ describe('WorkerThreadWorker', () => {
 
         const worker = new WorkerThreadWorker<number, string, WorkerThreadTask<number>>('worker_script_path');
 
-        const errorEmitterPromise = worker.error$.pipe(first()).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$);
 
         const taskPromise = worker.executeTask({
             timeout: 3000,
@@ -297,7 +299,7 @@ describe('WorkerThreadWorker', () => {
 
         const worker = new WorkerThreadWorker<number, string, WorkerThreadTask<number>>('worker_script_path');
 
-        const errorEmitterPromise = worker.error$.pipe(first()).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$);
 
         const taskPromise = worker.executeTask({
             timeout: 3000,
@@ -352,7 +354,7 @@ describe('WorkerThreadWorker', () => {
         WorkerConstructorMockFn.mockImplementationOnce(() => workerMock);
 
         const worker = new WorkerThreadWorker<string, string, WorkerThreadTask<string>>('worker_script_path');
-        const errorEmitterPromise = worker.error$.pipe(first()).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$);
 
         const result1 = await worker.executeTask({
             timeout: 3000,
@@ -381,7 +383,7 @@ describe('WorkerThreadWorker', () => {
         WorkerConstructorMockFn.mockImplementationOnce(() => workerMock);
 
         const worker = new WorkerThreadWorker<string, string, WorkerThreadTask<string>>('worker_script_path');
-        const errorEmitterPromise = worker.error$.pipe(first()).toPromise();
+        const errorEmitterPromise = firstValueFrom(worker.error$);
 
         const result1 = await worker.executeTask({
             timeout: 3000,

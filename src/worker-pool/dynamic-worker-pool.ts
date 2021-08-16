@@ -1,5 +1,4 @@
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, filter, first } from 'rxjs/operators';
+import { BehaviorSubject, distinctUntilChanged, filter, firstValueFrom, Observable, Subject } from 'rxjs';
 
 import { ObservableQueue } from '../data-structures';
 import { WorkerFactory } from '../worker-factory';
@@ -66,12 +65,7 @@ export class DynamicWorkerPool<
     public async stop(): Promise<void> {
         this.stopped = true;
 
-        await this.busyWorkers$
-            .pipe(
-                filter((count) => count === 0),
-                first()
-            )
-            .toPromise();
+        await firstValueFrom(this.busyWorkers$.pipe(filter((count) => count === 0)));
 
         const existingWorkerDescriptions = this.idleWorkersQueue.clear();
         existingWorkerDescriptions.forEach((d) => d.cancelIdleTimeout());
