@@ -1,3 +1,4 @@
+import { QueueError } from '../errors';
 import { ObservableQueue } from './observable-queue';
 
 export class LimitedObservableQueue<T> extends ObservableQueue<T> {
@@ -25,7 +26,7 @@ export class LimitedObservableQueue<T> extends ObservableQueue<T> {
     }
 
     public enqueue(item: T): void {
-        if (this.full) throw new Error('Queue full! Cannot enqueue any more items!');
+        if (this.full) throw new QueueError('Queue full! Cannot enqueue any more items!');
         super.enqueue(item);
     }
 }
