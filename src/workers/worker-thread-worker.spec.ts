@@ -290,7 +290,7 @@ describe('WorkerThreadWorker', () => {
 
         const emittedError = await errorEmitterPromise;
         expect(emittedError).toMatchObject({
-            message: 'Worker terminated gracefully. This hould not happen in a WorkerThreadWorker!'
+            message: 'Worker terminated gracefully. This should not happen in a WorkerThreadWorker!'
         });
     });
 

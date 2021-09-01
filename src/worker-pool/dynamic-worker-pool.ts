@@ -1,6 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged, filter, firstValueFrom, Observable, Subject } from 'rxjs';
 
 import { ObservableQueue } from '../data-structures';
+import { WorkerPoolError } from '../errors';
 import { WorkerFactory } from '../worker-factory';
 import { AbstractWorkerPool, AbstractWorkerPoolWorker } from './abstract-worker-pool';
 import { IdleWorkerDescription } from './idle-worker-description';
@@ -78,7 +79,7 @@ export class DynamicWorkerPool<
 
     protected aquireWorker(): TWorker {
         if (this.stopped) {
-            throw new Error('Cannot aquire worker from stopped worker pool!');
+            throw new WorkerPoolError('Cannot aquire worker from stopped worker pool!');
         } else if (this.idleWorkersQueue.size > 0) {
             const workerDescription = this.idleWorkersQueue.dequeue();
             workerDescription.cancelIdleTimeout();
@@ -93,7 +94,7 @@ export class DynamicWorkerPool<
             this.updateAvailableWorkers();
             return worker;
         } else {
-            throw new Error(`No free workers available in worker pool of max-size ${this.maxSize}`);
+            throw new WorkerPoolError(`No free workers available in worker pool of max-size ${this.maxSize}`);
         }
     }
 
@@ -133,7 +134,7 @@ export class DynamicWorkerPool<
         try {
             await worker.dispose();
         } catch (err) {
-            this.errorSubject.next(new Error(`Error while disposing worker-pool worker: ${err.message}`));
+            this.errorSubject.next(new WorkerPoolError(`Error while disposing worker-pool worker: ${err.message}`));
         }
     }
 

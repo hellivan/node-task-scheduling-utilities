@@ -1,8 +1,12 @@
 import {
+    ExecutionTimeoutError,
     DynamicWorkerPool,
     DynamicWorkerPoolWorker,
+    QueueError,
+    WorkerError,
     WorkerFactory,
     WorkerPool,
+    WorkerPoolError,
     WorkerThreadTask,
     WorkerThreadWorker,
     QdScheduler
@@ -15,6 +19,14 @@ describe('exports', () => {
         expect(WorkerThreadWorker).toBeDefined();
 
         expect(QdScheduler).toBeDefined();
+
+        expect(ExecutionTimeoutError).toBeDefined();
+
+        expect(QueueError).toBeDefined();
+
+        expect(WorkerError).toBeDefined();
+
+        expect(WorkerPoolError).toBeDefined();
     });
 
     test('interfaces must be exported', () => {
