@@ -3,6 +3,7 @@ import { Subject, Observable } from 'rxjs';
 
 import { EventRegistrationList } from './event-registration-list';
 import { TimerEventRegistration } from './timer-event-registration';
+import { ExecutionTimeoutError, WorkerError } from '../errors';
 
 export interface WorkerThreadTask<TData> {
     readonly timeout: number;
@@ -27,7 +28,7 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
     }
 
     public async executeTask({ timeout, data }: TTask): Promise<TResult> {
-        if (this.working) throw new Error('Worker busy. Cannot execute mutiple tasks in parallel!');
+        if (this.working) throw new WorkerError('Worker busy. Cannot execute mutiple tasks in parallel!');
         this.working = true;
 
         try {
@@ -48,7 +49,7 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
 
                 const onExit = (code: number): void => {
                     eventRegistrationsList.unregisterAll();
-                    reject(new Error(`Worker terminated with code ${code}`));
+                    reject(new WorkerError(`Worker terminated with code ${code}`));
                 };
 
                 eventRegistrationsList.push(
@@ -56,7 +57,9 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
                         eventRegistrationsList.unregisterAll();
                         // NOTE: terminateWorker will never reject. Hence we can do not have to catch rejection here
                         this.terminateWorker();
-                        const timeoutError = new Error(`Worker execution timed out after ${timeout} ms`);
+                        const timeoutError = new ExecutionTimeoutError(
+                            `Worker execution timed out after ${timeout} ms`
+                        );
                         this.errorsSubject.next(timeoutError);
                         reject(timeoutError);
                     }, timeout)
@@ -99,7 +102,9 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
 
             const terminationPromise = this.workerInstance.worker
                 .terminate()
-                .catch((err) => this.errorsSubject.next(new Error(`Error while terminating worker: ${err.message}`)));
+                .catch((err) =>
+                    this.errorsSubject.next(new WorkerError(`Error while terminating worker: ${err.message}`))
+                );
 
             this.workerInstance = undefined;
             await terminationPromise;
@@ -107,7 +112,7 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
     }
 
     private getWorker(): Worker {
-        if (this.disposed) throw new Error('Cannot get worker in a disposed WorkerThreadWorker!');
+        if (this.disposed) throw new WorkerError('Cannot get worker in a disposed WorkerThreadWorker!');
 
         if (this.workerInstance == null) {
             const newWorker = new Worker(this.workerScriptPath);
@@ -116,17 +121,17 @@ export class WorkerThreadWorker<TData, TResult, TTask extends WorkerThreadTask<T
             const onError = (err: Error): void => {
                 eventRegistrationsList.unregisterAll();
                 this.workerInstance = undefined;
-                this.errorsSubject.next(new Error(`Worker failed with error: ${err.message}`));
+                this.errorsSubject.next(new WorkerError(`Worker failed with error: ${err.message}`));
             };
 
             const onExit = (code: number): void => {
                 eventRegistrationsList.unregisterAll();
                 this.workerInstance = undefined;
                 if (code !== 0) {
-                    this.errorsSubject.next(new Error(`Worker terminated with exit code ${code}!`));
+                    this.errorsSubject.next(new WorkerError(`Worker terminated with exit code ${code}!`));
                 } else {
                     this.errorsSubject.next(
-                        new Error(`Worker terminated gracefully. This hould not happen in a WorkerThreadWorker!`)
+                        new WorkerError(`Worker terminated gracefully. This should not happen in a WorkerThreadWorker!`)
                     );
                 }
             };
