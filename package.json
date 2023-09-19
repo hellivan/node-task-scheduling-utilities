@@ -4,7 +4,7 @@
     "version": "0.0.0-semantic-release",
     "author": "Ivan Hell",
     "engines": {
-        "node": ">=12.8.1"
+        "node": ">=12.22.12"
     },
     "repository": {
         "type": "git",
